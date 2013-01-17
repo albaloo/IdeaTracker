@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600" xmlns:IdeaTracker="edu.illinois.IdeaTracker.*" xmlns:ui="edu.illinois.IdeaTracker.ui.*" creationComplete="handleCreationComplete(event)">
+	<fx:Declarations>
+		<s:RadioButtonGroup id="Select"/>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace mx "library://ns.adobe.com/flex/mx";
+ 
+        mx|ToolTip {
+            backgroundAlpha: 1.0;
+            backgroundColor: #BFC1C6;
+            color: black;
+            cornerRadius: 0;
+            fontSize: 12;
+        }
+    </fx:Style>
+	
+	<fx:Script>
+		<![CDATA[
+			import edu.illinois.IdeaTracker.ui.Idea;
+			import edu.illinois.IdeaTracker.ui.Tooltip;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.managers.ToolTipManager;
+			
+			import spark.events.IndexChangeEvent;
+	
+ 
+			ToolTipManager.toolTipClass = Tooltip;
+	
+    
+			[Bindable]
+			public var myDP:ArrayCollection = new ArrayCollection(
+				[ "All","None"]);
+			[Bindable]
+			public var screenWidth: int = Capabilities.screenResolutionX;
+			[Bindable]
+			public var screenHeight: int = Capabilities.screenResolutionY-29-10;
+			
+			public var ideasToCompare:Vector.<Idea> = new Vector.<Idea>();
+			
+			private function updateSelection(e:IndexChangeEvent):void
+			{
+				//testLabel.text = "Selected";// + myDDL.selectedItem.toSring();
+			
+			}
+			
+			private function handleCreationComplete(eventObj:Event):void {
+				//set compare and find idea with max votes
+				var maxVotesIdea:Idea = mainUI.ideas[0];
+				for (var i:int = 0; i < mainUI.ideas.length; i ++){
+					mainUI.ideas[i].compareText.addEventListener(MouseEvent.CLICK, compare);
+					if(mainUI.ideas[i].votes > maxVotesIdea.votes)
+						maxVotesIdea = mainUI.ideas[i];
+				}
+				
+				
+				maxVotesIdea.ideaContainer.addElement(maxVotesIdea.rankButton);//setStyle("borderVisible",true);
+				maxVotesIdea.votesButton.setStyle("fontWeight", "bold");
+			}
+			
+			public function compareUI_showHandler(event:FlexEvent):void
+			{
+				//clear idea compare vector
+				ideasToCompare =  new Vector.<Idea>();
+				
+				//find the selected ideas
+				for(var i:int = 0; i < mainUI.ideas.length; i++){
+					if(mainUI.ideas[i].checkBox.selected){
+						ideasToCompare.push(mainUI.ideas[i].clone());
+					}
+				}
+				
+				compareUI.show(ideasToCompare, mainUI);
+			}
+			
+			public function compare(event:MouseEvent):void
+			{
+				navigationStack.selectedChild=comparison;
+			}
+		]]>
+	</fx:Script>
+	
+	<mx:ViewStack id="navigationStack" left="20" horizontalCenter="8" right="20" top="30" verticalCenter="-1" bottom="10">
+		<s:NavigatorContent id="summary" label="Summary" width="100%" height="80%">
+			<ui:MainUI x="10" y="10" width="100%" height="100%" id="mainUI">
+			</ui:MainUI>
+			<!--s:DropDownList id= "myDDL" width="48" dataProvider="{myDP}" change="updateSelection(event);" x="6" y="11">
+			</s:DropDownList>
+			<s:CheckBox x="12" y="12"/>
+			<mx:Button id="compareButton" 
+					   label="Compare" 
+					   click="navigationStack.selectedChild=comparison;" x="58" y="11" width="78"/-->
+			<s:VScrollBar viewport="{mainUI}" 
+						  left="{mainUI.x + mainUI.width - 10}" 
+						  top="5" 
+						  height="{mainUI.height}"/>
+		</s:NavigatorContent>
+		<s:NavigatorContent id="comparison" label="Comparison" width="100%" height="80%" show="compareUI_showHandler(event)">
+			<ui:CompareUI x="10" y="10" width="100%" height="100%" id="compareUI">
+			</ui:CompareUI>
+			<s:VScrollBar viewport="{compareUI}" 
+						  left="{compareUI.x + compareUI.width - 10}" 
+						  top="5" 
+						  height="{compareUI.height}"/>
+		</s:NavigatorContent>
+	</mx:ViewStack>
+	<mx:LinkBar x="29" y="25" width="1031" height="28" dataProvider="{navigationStack}">
+	</mx:LinkBar>
+	
+</s:Application>
